@@ -6,40 +6,70 @@
     <title>체육관 사용 현황판</title>
     <style>
         body { font-family: 'Malgun Gothic', sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; }
+        
+        /* 화면 전환용 클래스 */
+        .screen { display: none; }
+        .screen.active { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* 초기 화면 스타일 */
+        #screen-home { text-align: center; margin-top: 15vh; }
+        #screen-home h1 { font-size: 3rem; color: #2c3e50; margin-bottom: 50px; }
+        .home-btns { display: flex; justify-content: center; gap: 30px; }
+        .btn-large { padding: 20px 40px; font-size: 1.5rem; background-color: #4CAF50; color: white; border: none; border-radius: 10px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: transform 0.2s; }
+        .btn-large:hover { transform: translateY(-3px); background-color: #45a049; }
+        .btn-large.secondary { background-color: #3498db; }
+        .btn-large.secondary:hover { background-color: #2980b9; }
+
+        /* 상단 헤더 및 공통 버튼 */
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        h1 { text-align: center; flex-grow: 1; color: #333; margin: 0; }
+        .header h2 { margin: 0; color: #333; cursor: pointer; }
         .top-buttons { display: flex; gap: 10px; }
         .btn { padding: 8px 15px; background-color: #555; color: white; border: none; border-radius: 5px; cursor: pointer; }
         .btn:hover { background-color: #333; }
-        
+        .btn-action { padding: 5px 10px; border: none; border-radius: 3px; cursor: pointer; color: white; margin: 0 2px;}
+        .btn-edit { background-color: #f39c12; }
+        .btn-delete { background-color: #e74c3c; }
+
+        /* 날짜 네비게이터 (일별) */
         .date-navigator { display: flex; justify-content: center; align-items: center; margin-bottom: 20px; }
         .date-box { font-size: 24px; font-weight: bold; border: 2px solid #333; padding: 10px 30px; margin: 0 15px; background: white; border-radius: 8px; }
         .arrow { font-size: 24px; cursor: pointer; user-select: none; padding: 5px 15px; background: #ddd; border-radius: 5px; }
         .arrow:hover { background: #ccc; }
 
-        table { width: 100%; border-collapse: collapse; background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        /* 표 스타일 */
+        table { width: 100%; border-collapse: collapse; background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px;}
         th, td { border: 1px solid #ddd; padding: 15px; text-align: center; }
         th { background-color: #4CAF50; color: white; font-size: 18px; }
-        
         .period-info { font-weight: bold; font-size: 18px; }
         .time-info { font-size: 12px; color: #666; margin-top: 5px; }
-        
         .slot-available { cursor: pointer; transition: background 0.2s; }
         .slot-available:hover { background-color: #f0f8ff; }
-        
-        .status-blue { color: #4d94ff; font-weight: bold; } /* 예약 가능 */
-        .status-red { color: #ff4d4d; font-weight: bold; } /* 예약 불가 */
-        .status-purple { color: #cc66ff; font-weight: bold; } /* 중복 (관리자용) */
-
+        .status-blue { color: #4d94ff; font-weight: bold; } 
+        .status-red { color: #ff4d4d; font-weight: bold; } 
         .author-text { font-size: 11px; color: #888; display: block; margin-top: 5px; }
 
-        /* 모달창 스타일 */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; }
-        .modal-content { background: white; padding: 30px; border-radius: 10px; width: 350px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
-        .modal input { width: 90%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; }
-        .save-btn { background-color: #4CAF50; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-top: 10px; width: 100%; font-size: 16px; }
+        /* 달력 스타일 */
+        .month-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; max-width: 600px; margin: 0 auto; }
+        .month-btn { padding: 20px; font-size: 1.2rem; background: white; border: 2px solid #4CAF50; border-radius: 10px; cursor: pointer; text-align: center; transition: background 0.2s; }
+        .month-btn:hover { background: #4CAF50; color: white; }
         
-        /* 관리자 패널 */
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-top: 20px; }
+        .cal-header { background: #eee; font-weight: bold; padding: 10px; text-align: center; }
+        .cal-day { padding: 20px 10px; text-align: center; border: 1px solid #ddd; border-radius: 5px; font-size: 1.2rem; background: white; }
+        .cal-day.weekend { background: #f9f9f9; color: #aaa; cursor: not-allowed; }
+        .cal-day.available { background: #fffde7; cursor: pointer; border-color: #fbc02d; } /* 연한 노란색 */
+        .cal-day.available:hover { background: #fff9c4; }
+        .cal-day.full { background: #e0e0e0; cursor: pointer; color: #777; } /* 회색 */
+        .cal-day.empty { border: none; background: transparent; }
+
+        /* 모달창 스타일 */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: white; padding: 30px; border-radius: 10px; width: 350px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .modal input { width: 90%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        .save-btn { background-color: #4CAF50; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-top: 10px; width: 100%; font-size: 16px; }
+        .cancel-btn { background: #ccc; color: #333; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-top: 10px; width: 100%; font-size: 16px; }
+
         .admin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
         .admin-box { background: #eee; padding: 20px; border-radius: 8px; cursor: pointer; font-weight: bold; }
         .admin-box:hover { background: #ddd; }
@@ -47,41 +77,77 @@
 </head>
 <body>
 
-    <div class="header">
-        <div style="width: 150px;"></div> <h1>체육관 사용 현황판</h1>
-        <div class="top-buttons">
-            <button class="btn" onclick="alert('월 달력 보기 기능 (준비중: 회색/흰색 구현)')">📅 달력보기</button>
-            <button class="btn" onclick="openAdmin()">⚙️ 설정(관리)</button>
+    <div id="screen-home" class="screen active">
+        <h1>체육관 사용 현황판</h1>
+        <div class="home-btns">
+            <button class="btn-large" onclick="showScreen('screen-month-select')">📅 예약 (달력)</button>
+            <button class="btn-large secondary" onclick="goToToday()">🏃 오늘로 이동</button>
         </div>
+        <button class="btn" style="margin-top: 50px;" onclick="openAdminModal()">⚙️ 관리자 설정</button>
     </div>
 
-    <div class="date-navigator">
-        <div class="arrow" onclick="changeDate(-1)">&#9664;</div>
-        <div class="date-box" id="currentDateDisplay">04-15-수요일</div>
-        <div class="arrow" onclick="changeDate(1)">&#9654;</div>
+    <div id="screen-month-select" class="screen">
+        <div class="header">
+            <h2 onclick="goHome()">🏠 홈으로</h2>
+            <h2>월별 달력 보기</h2>
+            <div style="width:80px;"></div>
+        </div>
+        <div class="month-grid" id="monthGrid">
+            </div>
     </div>
 
-    <table>
-        <thead>
-            <tr>
-                <th style="width: 20%;">교시</th>
-                <th style="width: 60%;">사용하는 사람</th>
-                <th style="width: 20%;">예약여부</th>
-            </tr>
-        </thead>
-        <tbody id="tableBody">
-            </tbody>
-    </table>
+    <div id="screen-calendar" class="screen">
+        <div class="header">
+            <h2 onclick="goHome()">🏠 홈으로</h2>
+            <h2 id="calendarTitle">2026년 O월 달력</h2>
+            <button class="btn" onclick="showScreen('screen-month-select')">🔙 월 선택</button>
+        </div>
+        <div class="calendar-grid" id="calendarGrid">
+            </div>
+    </div>
+
+    <div id="screen-daily" class="screen">
+        <div class="header">
+            <h2 onclick="goHome()">🏠 홈으로</h2>
+            <h1>일일 체육관 사용 현황</h1>
+            <div class="top-buttons">
+                <button class="btn" onclick="showScreen('screen-month-select')">📅 달력보기</button>
+                <button class="btn" onclick="openAdminModal()">⚙️ 설정</button>
+            </div>
+        </div>
+        <div class="date-navigator">
+            <div class="arrow" onclick="changeDate(-1)">&#9664;</div>
+            <div class="date-box" id="currentDateDisplay">04-15-수요일</div>
+            <div class="arrow" onclick="changeDate(1)">&#9654;</div>
+        </div>
+        <table>
+            <thead><tr><th style="width: 20%;">교시</th><th style="width: 60%;">사용하는 사람</th><th style="width: 20%;">예약여부</th></tr></thead>
+            <tbody id="tableBody"></tbody>
+        </table>
+    </div>
+
+    <div id="screen-admin-list" class="screen">
+        <div class="header">
+            <h2 onclick="goHome()">🏠 홈으로</h2>
+            <h1>예약 관리 (수정 및 삭제)</h1>
+            <button class="btn" onclick="goHome()">완료</button>
+        </div>
+        <table>
+            <thead><tr><th>날짜</th><th>교시</th><th>예약내용</th><th>관리</th></tr></thead>
+            <tbody id="adminListBody"></tbody>
+        </table>
+    </div>
 
     <div id="reservationModal" class="modal">
         <div class="modal-content">
             <h2 id="modalTitle">예약하기</h2>
+            <input type="hidden" id="editDateKey">
             <input type="text" id="resGrade" placeholder="학년 (예: 6학년)">
             <input type="text" id="resClass" placeholder="반 (예: 1반)">
-            <input type="text" id="resTeacher" placeholder="선생님 성함 (또는 주관식 입력)">
+            <input type="text" id="resTeacher" placeholder="선생님 성함 (또는 주관식)">
             <input type="text" id="resAuthor" placeholder="작성자 이름">
             <button class="save-btn" onclick="saveReservation()">저장하기</button>
-            <button class="btn" style="margin-top: 10px; width: 100%; background: #ccc; color: #333;" onclick="closeModal('reservationModal')">취소</button>
+            <button class="cancel-btn" onclick="closeModal('reservationModal')">취소</button>
         </div>
     </div>
 
@@ -89,102 +155,190 @@
         <div class="modal-content" style="width: 400px;">
             <h2>관리자 설정</h2>
             <div id="adminLogin">
-                <input type="password" id="adminPwd" placeholder="비밀번호를 입력하세요 (기본: 0000)">
+                <input type="password" id="adminPwdInput" placeholder="비밀번호를 입력하세요">
                 <button class="save-btn" onclick="checkAdmin()">확인</button>
             </div>
             <div id="adminPanel" style="display: none;">
                 <div class="admin-grid">
-                    <div class="admin-box">✏️ 예약 수정</div>
-                    <div class="admin-box">🗑️ 예약 삭제</div>
-                    <div class="admin-box">➕ 예약 추가</div>
-                    <div class="admin-box">🔑 비밀번호 변경</div>
+                    <div class="admin-box" onclick="openAdminList()">✏️/🗑️ 예약 수정 및 삭제</div>
+                    <div class="admin-box" onclick="showScreen('screen-month-select'); closeModal('adminModal');">➕ 예약 추가</div>
+                    <div class="admin-box" onclick="openChangePwdModal()">🔑 비밀번호 변경</div>
                 </div>
             </div>
-            <button class="btn" style="margin-top: 15px; width: 100%; background: #ccc; color: #333;" onclick="closeModal('adminModal')">닫기</button>
+            <button class="cancel-btn" onclick="closeModal('adminModal')">닫기</button>
+        </div>
+    </div>
+
+    <div id="pwdModal" class="modal">
+        <div class="modal-content">
+            <h2>비밀번호 변경</h2>
+            <input type="password" id="oldPwd" placeholder="현재 비밀번호">
+            <input type="password" id="newPwd" placeholder="바꿀 비밀번호">
+            <input type="password" id="newPwdConfirm" placeholder="바꿀 비밀번호 확인">
+            <button class="save-btn" onclick="saveNewPassword()">저장</button>
+            <button class="cancel-btn" onclick="closeModal('pwdModal')">취소</button>
         </div>
     </div>
 
     <script>
-        // --- 설정: Step 1에서 복사한 앱스스크립트 웹 앱 URL을 아래 따옴표 안에 넣으세요 ---
-        const GOOGLE_APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbygUOBFt0L9uymYtXtH-X-uWquy7tRvwmCxPSC7KML7vciy8PM8PkocX7CBeMEvLxccDA/exec';
-
-        const periods = [
-            { period: "1교시", time: "09:00~09:40" },
-            { period: "2교시", time: "09:50~10:30" },
-            { period: "3교시", time: "10:40~11:20" },
-            { period: "4교시", time: "11:30~12:10" },
-            { period: "5교시", time: "12:20~13:00" },
-            { period: "6교시", time: "13:00~13:40" },
-            { period: "7교시", time: "13:50~14:30" }
-        ];
-
+        const CURRENT_YEAR = 2026;
+        const periods = ["1교시", "2교시", "3교시", "4교시", "5교시", "6교시", "7교시"];
+        const periodTimes = ["09:00~09:40", "09:50~10:30", "10:40~11:20", "11:30~12:10", "12:20~13:00", "13:00~13:40", "13:50~14:30"];
+        
         let currentDate = new Date();
         let currentSelectedPeriod = null;
+        let isEditMode = false;
 
-        // 더미 데이터 (데이터베이스 연동 전 테스트용)
-        let reservationsData = {
-            "04-15": { "3교시": { text: "6학년 1반 김현수 선생님", author: "작성자: 김현수" } }
-        };
+        // 브라우저 저장소(localStorage)에서 데이터 불러오기
+        let reservationsData = JSON.parse(localStorage.getItem('gymData')) || {};
+        let adminPassword = localStorage.getItem('gymPwd') || "0000";
 
-        function formatDate(date) {
+        // 데이터 저장 함수 (새로고침해도 유지됨)
+        function saveData() {
+            localStorage.setItem('gymData', JSON.stringify(reservationsData));
+        }
+
+        // 화면 전환 함수
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+            if(screenId === 'screen-month-select') renderMonthSelect();
+        }
+
+        function goHome() {
+            showScreen('screen-home');
+        }
+
+        // 유틸리티 함수
+        function formatDateStr(date) {
             const days = ["일", "월", "화", "수", "목", "금", "토"];
-            const m = String(date.getMonth() + 1).padStart(2, '0');
-            const d = String(date.getDate()).padStart(2, '0');
-            const dayName = days[date.getDay()];
-            return `${m}-${d}-${dayName}요일`;
+            return `${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}-${days[date.getDay()]}요일`;
         }
-
         function getDateKey(date) {
-            return `${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+            return `${CURRENT_YEAR}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
         }
 
-        function updateDisplay() {
-            document.getElementById("currentDateDisplay").innerText = formatDate(currentDate);
-            renderTable();
+        // --- 기능 1. 초기 화면 및 이동 ---
+        function goToToday() {
+            currentDate = new Date();
+            updateDailyDisplay();
+            showScreen('screen-daily');
         }
 
+        // --- 기능 2. 월별 달력 ---
+        function renderMonthSelect() {
+            const grid = document.getElementById("monthGrid");
+            grid.innerHTML = "";
+            for(let i=1; i<=12; i++) {
+                let btn = document.createElement("div");
+                btn.className = "month-btn";
+                btn.innerText = `${i}월`;
+                btn.onclick = () => renderCalendar(i);
+                grid.appendChild(btn);
+            }
+        }
+
+        function renderCalendar(month) {
+            document.getElementById("calendarTitle").innerText = `${CURRENT_YEAR}년 ${month}월`;
+            const grid = document.getElementById("calendarGrid");
+            grid.innerHTML = "";
+            
+            const days = ["일", "월", "화", "수", "목", "금", "토"];
+            days.forEach(d => {
+                grid.innerHTML += `<div class="cal-header">${d}</div>`;
+            });
+
+            const firstDay = new Date(CURRENT_YEAR, month - 1, 1).getDay();
+            const lastDate = new Date(CURRENT_YEAR, month, 0).getDate();
+
+            for(let i=0; i<firstDay; i++) { grid.innerHTML += `<div class="cal-day empty"></div>`; }
+
+            for(let day=1; day<=lastDate; day++) {
+                let targetDate = new Date(CURRENT_YEAR, month - 1, day);
+                let dateKey = getDateKey(targetDate);
+                let dayOfWeek = targetDate.getDay();
+                
+                let dayDiv = document.createElement("div");
+                dayDiv.innerText = day;
+                
+                // 주말 처리 (선택 불가)
+                if (dayOfWeek === 0 || dayOfWeek === 6) {
+                    dayDiv.className = "cal-day weekend";
+                } else {
+                    // 평일 상태 계산 (예약 완료 회색, 예약 가능 연한 노란색)
+                    let dayData = reservationsData[dateKey] || {};
+                    let bookedCount = Object.keys(dayData).length;
+                    
+                    if (bookedCount >= 7) {
+                        dayDiv.className = "cal-day full"; // 예약 꽉 참 (회색)
+                    } else {
+                        dayDiv.className = "cal-day available"; // 예약 가능 (연한 노란색)
+                    }
+                    
+                    dayDiv.onclick = () => {
+                        currentDate = targetDate;
+                        updateDailyDisplay();
+                        showScreen('screen-daily');
+                    };
+                }
+                grid.appendChild(dayDiv);
+            }
+            showScreen('screen-calendar');
+        }
+
+        // --- 기능 3. 일별 현황판 ---
         function changeDate(days) {
             currentDate.setDate(currentDate.getDate() + days);
-            updateDisplay();
+            updateDailyDisplay();
         }
 
-        function renderTable() {
+        function updateDailyDisplay() {
+            document.getElementById("currentDateDisplay").innerText = formatDateStr(currentDate);
             const tbody = document.getElementById("tableBody");
             tbody.innerHTML = "";
             const dateKey = getDateKey(currentDate);
             const dayData = reservationsData[dateKey] || {};
 
-            periods.forEach(p => {
+            periods.forEach((periodName, index) => {
                 const tr = document.createElement("tr");
-                const res = dayData[p.period];
-
-                let userCell = "";
-                let statusCell = "";
+                const res = dayData[periodName];
                 
                 if (res) {
-                    userCell = `${res.text} <span class="author-text">${res.author}</span>`;
-                    statusCell = `<span class="status-red">예약 불가</span>`;
                     tr.innerHTML = `
-                        <td><div class="period-info">${p.period}</div><div class="time-info">${p.time}</div></td>
-                        <td>${userCell}</td>
-                        <td>${statusCell}</td>
+                        <td><div class="period-info">${periodName}</div><div class="time-info">${periodTimes[index]}</div></td>
+                        <td>${res.text} <span class="author-text">${res.author}</span></td>
+                        <td><span class="status-red">예약 불가</span></td>
                     `;
                 } else {
-                    userCell = `<span style="color:#aaa;">(비어있음 - 클릭하여 예약)</span>`;
-                    statusCell = `<span class="status-blue">예약 가능</span>`;
                     tr.innerHTML = `
-                        <td><div class="period-info">${p.period}</div><div class="time-info">${p.time}</div></td>
-                        <td class="slot-available" onclick="openReservationModal('${p.period}')">${userCell}</td>
-                        <td>${statusCell}</td>
+                        <td><div class="period-info">${periodName}</div><div class="time-info">${periodTimes[index]}</div></td>
+                        <td class="slot-available" onclick="openReservationModal('${periodName}')"><span style="color:#aaa;">(클릭하여 예약)</span></td>
+                        <td><span class="status-blue">예약 가능</span></td>
                     `;
                 }
                 tbody.appendChild(tr);
             });
         }
 
-        function openReservationModal(period) {
+        // --- 모달 및 예약 기능 ---
+        function openReservationModal(period, dateKey = null) {
+            isEditMode = dateKey !== null;
             currentSelectedPeriod = period;
-            document.getElementById("modalTitle").innerText = `${formatDate(currentDate)} ${period} 예약`;
+            
+            // 수정 모드일 때
+            if (isEditMode) {
+                document.getElementById("modalTitle").innerText = "예약 수정";
+                document.getElementById("editDateKey").value = dateKey;
+                // 내용 분리하는 로직은 생략하고 새로 입력받도록 유도 (간소화)
+            } else {
+                document.getElementById("modalTitle").innerText = `${formatDateStr(currentDate)} ${period} 예약`;
+                document.getElementById("editDateKey").value = getDateKey(currentDate);
+            }
+            
+            document.getElementById("resGrade").value = "";
+            document.getElementById("resClass").value = "";
+            document.getElementById("resTeacher").value = "";
+            document.getElementById("resAuthor").value = "";
             document.getElementById("reservationModal").style.display = "flex";
         }
 
@@ -193,50 +347,36 @@
         }
 
         function saveReservation() {
+            const dateKey = document.getElementById("editDateKey").value;
             const grade = document.getElementById("resGrade").value;
             const classNum = document.getElementById("resClass").value;
             const teacher = document.getElementById("resTeacher").value;
             const author = document.getElementById("resAuthor").value;
 
-            if (!teacher) { alert("선생님 성함(또는 내용)을 입력해주세요."); return; }
+            if (!teacher) { alert("선생님 성함이나 내용을 입력해주세요."); return; }
 
             const text = `${grade} ${classNum} ${teacher}`.trim();
-            const dateKey = getDateKey(currentDate);
-
-            // 로컬 화면에 먼저 반영
             if (!reservationsData[dateKey]) reservationsData[dateKey] = {};
             reservationsData[dateKey][currentSelectedPeriod] = { text: text, author: `작성자: ${author || teacher}` };
-
-            /* 앱스스크립트로 데이터 전송 (주석 해제 후 사용)
-            fetch(GOOGLE_APP_SCRIPT_URL, {
-                method: 'POST',
-                body: JSON.stringify({
-                    date: dateKey, period: currentSelectedPeriod, 
-                    grade: grade, classNum: classNum, teacher: teacher, author: author
-                })
-            }).then(res => res.json()).then(data => console.log("저장 완료"));
-            */
-
-            closeModal('reservationModal');
-            updateDisplay();
             
-            // 입력창 초기화
-            document.getElementById("resGrade").value = "";
-            document.getElementById("resClass").value = "";
-            document.getElementById("resTeacher").value = "";
-            document.getElementById("resAuthor").value = "";
+            saveData(); // 데이터 저장
+            closeModal('reservationModal');
+            
+            // 저장 후 새로고침
+            alert("저장되었습니다.");
+            window.location.reload(); 
         }
 
-        function openAdmin() {
+        // --- 기능 4. 관리자 및 비밀번호 변경 ---
+        function openAdminModal() {
             document.getElementById("adminLogin").style.display = "block";
             document.getElementById("adminPanel").style.display = "none";
-            document.getElementById("adminPwd").value = "";
+            document.getElementById("adminPwdInput").value = "";
             document.getElementById("adminModal").style.display = "flex";
         }
 
         function checkAdmin() {
-            const pwd = document.getElementById("adminPwd").value;
-            if (pwd === "0000") {
+            if (document.getElementById("adminPwdInput").value === adminPassword) {
                 document.getElementById("adminLogin").style.display = "none";
                 document.getElementById("adminPanel").style.display = "block";
             } else {
@@ -244,8 +384,70 @@
             }
         }
 
-        // 초기 화면 설정
-        updateDisplay();
+        function openChangePwdModal() {
+            closeModal('adminModal');
+            document.getElementById("oldPwd").value = "";
+            document.getElementById("newPwd").value = "";
+            document.getElementById("newPwdConfirm").value = "";
+            document.getElementById("pwdModal").style.display = "flex";
+        }
+
+        function saveNewPassword() {
+            const old = document.getElementById("oldPwd").value;
+            const newP = document.getElementById("newPwd").value;
+            const confirmP = document.getElementById("newPwdConfirm").value;
+
+            if (old !== adminPassword) { alert("현재 비밀번호가 틀립니다."); return; }
+            if (newP !== confirmP) { alert("바꿀 비밀번호가 서로 일치하지 않습니다."); return; }
+            if (newP === "") { alert("새 비밀번호를 입력하세요."); return; }
+
+            localStorage.setItem('gymPwd', newP);
+            alert("비밀번호가 성공적으로 변경되었습니다.");
+            window.location.reload(); // 새로고침
+        }
+
+        // --- 기능 5. 예약 수정 및 삭제 (관리자) ---
+        function openAdminList() {
+            closeModal('adminModal');
+            const tbody = document.getElementById("adminListBody");
+            tbody.innerHTML = "";
+
+            // 날짜순으로 정렬하여 보여주기
+            const sortedDates = Object.keys(reservationsData).sort();
+            
+            sortedDates.forEach(dateKey => {
+                const dayData = reservationsData[dateKey];
+                periods.forEach(period => {
+                    if (dayData[period]) {
+                        const tr = document.createElement("tr");
+                        tr.innerHTML = `
+                            <td>${dateKey}</td>
+                            <td>${period}</td>
+                            <td>${dayData[period].text}</td>
+                            <td>
+                                <button class="btn-action btn-edit" onclick="openReservationModal('${period}', '${dateKey}')">수정</button>
+                                <button class="btn-action btn-delete" onclick="deleteReservation('${dateKey}', '${period}')">삭제</button>
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    }
+                });
+            });
+            showScreen('screen-admin-list');
+        }
+
+        function deleteReservation(dateKey, period) {
+            if (confirm(`정말 ${dateKey} ${period} 예약을 삭제하시겠습니까?`)) {
+                delete reservationsData[dateKey][period];
+                // 해당 날짜에 예약이 하나도 없으면 날짜 데이터 자체를 삭제
+                if (Object.keys(reservationsData[dateKey]).length === 0) {
+                    delete reservationsData[dateKey];
+                }
+                saveData(); // 데이터 저장
+                alert("삭제되었습니다.");
+                window.location.reload(); // 새로고침
+            }
+        }
     </script>
 </body>
 </html>
