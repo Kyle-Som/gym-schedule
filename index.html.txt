@@ -106,7 +106,7 @@
 
     <script>
         // --- 설정: Step 1에서 복사한 앱스스크립트 웹 앱 URL을 아래 따옴표 안에 넣으세요 ---
-        const GOOGLE_APP_SCRIPT_URL = '여기에_웹앱_URL을_붙여넣으세요';
+        const GOOGLE_APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbygUOBFt0L9uymYtXtH-X-uWquy7tRvwmCxPSC7KML7vciy8PM8PkocX7CBeMEvLxccDA/exec';
 
         const periods = [
             { period: "1교시", time: "09:00~09:40" },
