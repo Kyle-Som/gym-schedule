@@ -37,10 +37,24 @@
         .arrow { font-size: 24px; cursor: pointer; user-select: none; padding: 5px 15px; background: #ddd; border-radius: 5px; }
         .arrow:hover { background: #ccc; }
 
-        /* 표 스타일 */
-        table { width: 100%; border-collapse: collapse; background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px;}
+        /* 🟢 표 스타일 변경 (크기 축소, 중앙 정렬, 둥근 모서리) */
+        .table-wrapper {
+            max-width: 600px; /* 표의 최대 넓이를 지정해 아담하게 만듦 */
+            margin: 0 auto 30px auto; /* 가운데 정렬 (상우하좌) */
+            border-radius: 15px; /* 모서리를 둥글게 */
+            overflow: hidden; /* 둥근 모서리 바깥으로 튀어나오는 테이블 배경을 숨김 */
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); /* 부드러운 그림자 효과 */
+        }
+        table { width: 100%; border-collapse: collapse; background: white; }
         th, td { border: 1px solid #ddd; padding: 15px; text-align: center; }
         th { background-color: #4CAF50; color: white; font-size: 18px; }
+        
+        /* 테이블 테두리와 wrapper 둥근 모서리가 겹치지 않게 외곽선 제거 */
+        tr:first-child th { border-top: none; }
+        tr:last-child td { border-bottom: none; }
+        th:first-child, td:first-child { border-left: none; }
+        th:last-child, td:last-child { border-right: none; }
+
         .period-info { font-weight: bold; font-size: 18px; }
         .time-info { font-size: 12px; color: #666; margin-top: 5px; }
         .slot-available { cursor: pointer; transition: background 0.2s; }
@@ -58,9 +72,9 @@
         .cal-header { background: #eee; font-weight: bold; padding: 10px; text-align: center; }
         .cal-day { padding: 20px 10px; text-align: center; border: 1px solid #ddd; border-radius: 5px; font-size: 1.2rem; background: white; }
         .cal-day.weekend { background: #f9f9f9; color: #aaa; cursor: not-allowed; }
-        .cal-day.available { background: #fffde7; cursor: pointer; border-color: #fbc02d; } /* 연한 노란색 */
+        .cal-day.available { background: #fffde7; cursor: pointer; border-color: #fbc02d; }
         .cal-day.available:hover { background: #fff9c4; }
-        .cal-day.full { background: #e0e0e0; cursor: pointer; color: #777; } /* 회색 */
+        .cal-day.full { background: #e0e0e0; cursor: pointer; color: #777; }
         .cal-day.empty { border: none; background: transparent; }
 
         /* 모달창 스타일 */
@@ -120,10 +134,13 @@
             <div class="date-box" id="currentDateDisplay">04-15-수요일</div>
             <div class="arrow" onclick="changeDate(1)">&#9654;</div>
         </div>
-        <table>
-            <thead><tr><th style="width: 20%;">교시</th><th style="width: 60%;">사용하는 사람</th><th style="width: 20%;">예약여부</th></tr></thead>
-            <tbody id="tableBody"></tbody>
-        </table>
+        
+        <div class="table-wrapper">
+            <table>
+                <thead><tr><th style="width: 25%;">교시</th><th style="width: 50%;">사용하는 사람</th><th style="width: 25%;">예약여부</th></tr></thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
     </div>
 
     <div id="screen-admin-list" class="screen">
@@ -132,10 +149,13 @@
             <h1>예약 관리 (수정 및 삭제)</h1>
             <button class="btn" onclick="goHome()">완료</button>
         </div>
-        <table>
-            <thead><tr><th>날짜</th><th>교시</th><th>예약내용</th><th>관리</th></tr></thead>
-            <tbody id="adminListBody"></tbody>
-        </table>
+        
+        <div class="table-wrapper">
+            <table>
+                <thead><tr><th>날짜</th><th>교시</th><th>예약내용</th><th>관리</th></tr></thead>
+                <tbody id="adminListBody"></tbody>
+            </table>
+        </div>
     </div>
 
     <div id="reservationModal" class="modal">
@@ -189,16 +209,13 @@
         let currentSelectedPeriod = null;
         let isEditMode = false;
 
-        // 브라우저 저장소(localStorage)에서 데이터 불러오기
         let reservationsData = JSON.parse(localStorage.getItem('gymData')) || {};
         let adminPassword = localStorage.getItem('gymPwd') || "0000";
 
-        // 데이터 저장 함수 (새로고침해도 유지됨)
         function saveData() {
             localStorage.setItem('gymData', JSON.stringify(reservationsData));
         }
 
-        // 화면 전환 함수
         function showScreen(screenId) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(screenId).classList.add('active');
@@ -209,23 +226,21 @@
             showScreen('screen-home');
         }
 
-        // 유틸리티 함수
         function formatDateStr(date) {
             const days = ["일", "월", "화", "수", "목", "금", "토"];
             return `${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}-${days[date.getDay()]}요일`;
         }
+        
         function getDateKey(date) {
             return `${CURRENT_YEAR}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
         }
 
-        // --- 기능 1. 초기 화면 및 이동 ---
         function goToToday() {
             currentDate = new Date();
             updateDailyDisplay();
             showScreen('screen-daily');
         }
 
-        // --- 기능 2. 월별 달력 ---
         function renderMonthSelect() {
             const grid = document.getElementById("monthGrid");
             grid.innerHTML = "";
@@ -261,18 +276,16 @@
                 let dayDiv = document.createElement("div");
                 dayDiv.innerText = day;
                 
-                // 주말 처리 (선택 불가)
                 if (dayOfWeek === 0 || dayOfWeek === 6) {
                     dayDiv.className = "cal-day weekend";
                 } else {
-                    // 평일 상태 계산 (예약 완료 회색, 예약 가능 연한 노란색)
                     let dayData = reservationsData[dateKey] || {};
                     let bookedCount = Object.keys(dayData).length;
                     
                     if (bookedCount >= 7) {
-                        dayDiv.className = "cal-day full"; // 예약 꽉 참 (회색)
+                        dayDiv.className = "cal-day full";
                     } else {
-                        dayDiv.className = "cal-day available"; // 예약 가능 (연한 노란색)
+                        dayDiv.className = "cal-day available";
                     }
                     
                     dayDiv.onclick = () => {
@@ -286,7 +299,6 @@
             showScreen('screen-calendar');
         }
 
-        // --- 기능 3. 일별 현황판 ---
         function changeDate(days) {
             currentDate.setDate(currentDate.getDate() + days);
             updateDailyDisplay();
@@ -320,12 +332,10 @@
             });
         }
 
-        // --- 모달 및 예약 기능 ---
         function openReservationModal(period, dateKey = null) {
             isEditMode = dateKey !== null;
             currentSelectedPeriod = period;
             
-            // 수정 모드일 때
             if (isEditMode) {
                 document.getElementById("modalTitle").innerText = "예약 수정";
                 document.getElementById("editDateKey").value = dateKey;
@@ -358,20 +368,18 @@
             if (!reservationsData[dateKey]) reservationsData[dateKey] = {};
             reservationsData[dateKey][currentSelectedPeriod] = { text: text, author: `작성자: ${author || teacher}` };
             
-            saveData(); // 데이터 저장
+            saveData();
             closeModal('reservationModal');
             
             alert("저장되었습니다.");
             
-            // 핵심 변경 부분: window.location.reload(); 를 제거하고 현재 화면만 업데이트합니다.
             if (isEditMode) {
-                openAdminList(); // 관리자 예약 목록 새로고침
+                openAdminList();
             } else {
-                updateDailyDisplay(); // 일일 현황판 화면 새로고침
+                updateDailyDisplay();
             }
         }
 
-        // --- 기능 4. 관리자 및 비밀번호 변경 ---
         function openAdminModal() {
             document.getElementById("adminLogin").style.display = "block";
             document.getElementById("adminPanel").style.display = "none";
@@ -407,16 +415,14 @@
 
             localStorage.setItem('gymPwd', newP);
             alert("비밀번호가 성공적으로 변경되었습니다.");
-            closeModal('pwdModal'); // 모달창만 닫기 (새로고침 방지)
+            closeModal('pwdModal');
         }
 
-        // --- 기능 5. 예약 수정 및 삭제 (관리자) ---
         function openAdminList() {
             closeModal('adminModal');
             const tbody = document.getElementById("adminListBody");
             tbody.innerHTML = "";
 
-            // 날짜순으로 정렬하여 보여주기
             const sortedDates = Object.keys(reservationsData).sort();
             
             sortedDates.forEach(dateKey => {
@@ -443,14 +449,11 @@
         function deleteReservation(dateKey, period) {
             if (confirm(`정말 ${dateKey} ${period} 예약을 삭제하시겠습니까?`)) {
                 delete reservationsData[dateKey][period];
-                // 해당 날짜에 예약이 하나도 없으면 날짜 데이터 자체를 삭제
                 if (Object.keys(reservationsData[dateKey]).length === 0) {
                     delete reservationsData[dateKey];
                 }
-                saveData(); // 데이터 저장
+                saveData();
                 alert("삭제되었습니다.");
-                
-                // 새로고침 방지 및 관리자 리스트 데이터만 재호출
                 openAdminList();
             }
         }
