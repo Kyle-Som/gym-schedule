@@ -7,8 +7,8 @@
     <style>
         body { font-family: 'Malgun Gothic', sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; }
         
-        /* 화면 전환용 클래스 */
-        .screen { display: none; }
+        /* 🚀 화면 전체 중앙 정렬 및 상단 여백 추가 */
+        .screen { display: none; max-width: 1000px; margin: 50px auto 30px auto; }
         .screen.active { display: block; animation: fadeIn 0.3s; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
@@ -21,27 +21,27 @@
         .btn-large.secondary { background-color: #3498db; }
         .btn-large.secondary:hover { background-color: #2980b9; }
 
-        /* 상단 헤더 및 공통 버튼 */
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        /* 상단 헤더 및 공통 버튼 (이제 표와 정확히 가로폭이 맞습니다) */
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
         .header h2 { margin: 0; color: #333; cursor: pointer; }
         .top-buttons { display: flex; gap: 10px; }
         .btn { padding: 8px 15px; background-color: #555; color: white; border: none; border-radius: 5px; cursor: pointer; }
         .btn:hover { background-color: #333; }
-        .btn-bulk { background-color: #8e44ad; font-weight: bold; } /* 한번에 예약 버튼 강조 */
+        .btn-bulk { background-color: #8e44ad; font-weight: bold; }
         .btn-bulk:hover { background-color: #732d91; }
         .btn-action { padding: 5px 10px; border: none; border-radius: 3px; cursor: pointer; color: white; margin: 0 2px;}
         .btn-edit { background-color: #f39c12; }
         .btn-delete { background-color: #e74c3c; }
 
         /* 날짜 네비게이터 (주간) */
-        .date-navigator { display: flex; justify-content: center; align-items: center; margin-bottom: 20px; }
+        .date-navigator { display: flex; justify-content: center; align-items: center; margin-bottom: 25px; }
         .date-box { font-size: 20px; font-weight: bold; border: 2px solid #333; padding: 10px 20px; margin: 0 15px; background: white; border-radius: 8px; }
         .arrow { font-size: 24px; cursor: pointer; user-select: none; padding: 5px 15px; background: #ddd; border-radius: 5px; }
         .arrow:hover { background: #ccc; }
 
         /* 주간 표 스타일 */
         .table-wrapper { 
-            max-width: 1000px; 
+            width: 100%; 
             margin: 0 auto 30px auto; 
             border-radius: 15px; 
             box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
@@ -74,7 +74,7 @@
         .month-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; max-width: 600px; margin: 0 auto; }
         .month-btn { padding: 20px; font-size: 1.2rem; background: white; border: 2px solid #4CAF50; border-radius: 10px; cursor: pointer; text-align: center; transition: background 0.2s; }
         .month-btn:hover { background: #4CAF50; color: white; }
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-top: 20px; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-top: 20px; width: 100%; }
         .cal-header { background: #eee; font-weight: bold; padding: 10px; text-align: center; }
         .cal-day { padding: 20px 10px; text-align: center; border: 1px solid #ddd; border-radius: 5px; font-size: 1.2rem; background: white; cursor: pointer; }
         .cal-day.weekend { background: #f9f9f9; color: #aaa; cursor: not-allowed; }
@@ -92,7 +92,6 @@
         .admin-box { background: #eee; padding: 20px; border-radius: 8px; cursor: pointer; font-weight: bold; }
         .admin-box:hover { background: #ddd; }
         
-        /* 모달 내부 하단 버튼 정렬용 */
         .modal-actions { display: flex; justify-content: space-between; gap: 10px; margin-top: 20px; }
     </style>
 </head>
@@ -170,8 +169,7 @@
             <p style="color: #555; font-size: 14px;">예약하고 싶은 시간을 모두 클릭한 후 다음 버튼을 누르세요.</p>
             
             <div class="table-wrapper" style="max-height: 50vh; overflow-y: auto; margin-bottom: 0;">
-                <table id="bulkTable">
-                    </table>
+                <table id="bulkTable"></table>
             </div>
             
             <div class="modal-actions">
@@ -269,7 +267,6 @@
         let reservationsData = {};
         let adminPassword = localStorage.getItem('gymPwd') || "0000";
 
-        // 🚀 일괄 예약 상태 관리용 변수
         let isBulkMode = false;
         let bulkSelectionArray = [];
 
@@ -383,7 +380,6 @@
             });
         }
 
-        // 🚀 일괄 예약 선택창 띄우기
         function openBulkSelectModal() {
             bulkSelectionArray = [];
             isBulkMode = true;
@@ -391,7 +387,6 @@
             const modalTable = document.getElementById("bulkTable");
             const monday = getMonday(currentDate);
 
-            // 헤더 생성
             let headerHtml = `<thead><tr><th style="width:15%">교시</th>`;
             let weekDates = [];
             const dayNames = ["월", "화", "수", "목", "금"];
@@ -404,7 +399,6 @@
             headerHtml += `</tr></thead><tbody id="bulkBody"></tbody>`;
             modalTable.innerHTML = headerHtml;
 
-            // 바디(내용) 생성
             const tbody = document.getElementById("bulkBody");
             periods.forEach(period => {
                 const tr = document.createElement("tr");
@@ -427,18 +421,15 @@
             document.getElementById("bulkSelectModal").style.display = "flex";
         }
 
-        // 🚀 일괄 예약: 칸 클릭 시 선택/해제 토글
         function toggleBulkSlot(dateKey, period, cell) {
             const index = bulkSelectionArray.findIndex(item => item.dateKey === dateKey && item.period === period);
             
             if (index > -1) {
-                // 이미 선택된 상태면 배열에서 빼고 색상 원상복구
                 bulkSelectionArray.splice(index, 1);
                 cell.classList.remove('slot-selected');
                 cell.classList.add('slot-available');
                 cell.innerHTML = `<span class="add-icon">선택가능</span>`;
             } else {
-                // 선택 안 된 상태면 배열에 넣고 보라색으로 칠하기
                 bulkSelectionArray.push({ dateKey, period });
                 cell.classList.remove('slot-available');
                 cell.classList.add('slot-selected');
@@ -446,7 +437,6 @@
             }
         }
 
-        // 🚀 일괄 예약: 다음 버튼 누르면 입력창으로 넘어가기
         function goToBulkInput() {
             if (bulkSelectionArray.length === 0) {
                 alert("예약할 시간을 1개 이상 선택해주세요!");
@@ -461,9 +451,8 @@
             document.getElementById("reservationModal").style.display = "flex";
         }
 
-        // 단일 예약 시 isBulkMode를 false로 초기화
         function openReservationModal(period, targetDateKey, isEdit) {
-            isBulkMode = false; // 일반 예약 모드로 전환
+            isBulkMode = false;
             isEditMode = isEdit;
             currentSelectedPeriod = period;
             document.getElementById("editDateKey").value = targetDateKey;
@@ -490,11 +479,9 @@
             if (!teacher) { alert("선생님 성함이나 내용을 입력해주세요."); return; }
             const text = `${grade} ${classNum} ${teacher}`.trim();
             
-            // 🚀 [추가됨] 일괄 예약 모드일 때의 저장 처리
             if (isBulkMode) {
                 let updates = {};
                 bulkSelectionArray.forEach(item => {
-                    // Firebase의 여러 경로를 한 번에 업데이트하기 위해 객체로 묶음
                     updates[`reservations/${item.dateKey}/${item.period}`] = { text: text };
                 });
                 
@@ -505,7 +492,6 @@
                     bulkSelectionArray = [];
                 }).catch(() => alert("일괄 저장에 실패했습니다."));
 
-            // 기존 단일 예약 모드일 때의 저장 처리
             } else {
                 const dateKey = document.getElementById("editDateKey").value;
                 db.ref(`reservations/${dateKey}/${currentSelectedPeriod}`).set({
