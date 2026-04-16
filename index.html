@@ -5,9 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>체육관 사용 현황판</title>
     <style>
-        body { font-family: 'Malgun Gothic', sans-serif; background-color: #f4f7f6; margin: 0; padding: 0; }
+        /* 🚀 끝부분이 살짝 둥근 폰트(나눔스퀘어라운드) 웹 폰트 불러오기 */
+        @font-face {
+            font-family: 'NanumSquareRound';
+            src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_two@1.0/NanumSquareRound.woff') format('woff');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        /* 전체 폰트 적용 */
+        body { font-family: 'NanumSquareRound', 'Malgun Gothic', sans-serif; background-color: #f4f7f6; margin: 0; padding: 0; }
         
-        /* 🚀 화면 전체 상하좌우 중앙 정렬 */
+        /* 화면 전체 상하좌우 중앙 정렬 */
         .screen { display: none; }
         .screen.active { 
             display: flex; 
@@ -15,13 +24,13 @@
             align-items: center; 
             justify-content: center; 
             min-height: 100vh; 
-            padding: 80px 20px; /* 상단 고정바 공간 확보 */
+            padding: 80px 20px; 
             box-sizing: border-box; 
             animation: fadeIn 0.3s; 
         }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* 🚀 좌측/우측 최상단 고정 네비게이션 바 */
+        /* 좌측/우측 최상단 고정 네비게이션 바 */
         .top-navbar {
             position: fixed;
             top: 20px;
@@ -31,9 +40,9 @@
             justify-content: space-between;
             align-items: flex-start;
             z-index: 100;
-            pointer-events: none; /* 빈 공간은 클릭 통과 */
+            pointer-events: none; 
         }
-        .top-navbar > * { pointer-events: auto; /* 버튼은 클릭 가능하게 복구 */ }
+        .top-navbar > * { pointer-events: auto; }
         
         /* 홈 버튼 스타일 */
         .home-link {
@@ -53,23 +62,23 @@
 
         /* 상단 우측 버튼 그룹 */
         .top-buttons { display: flex; gap: 10px; }
-        .btn { padding: 10px 20px; background-color: #555; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 1rem; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: all 0.2s;}
+        .btn { padding: 10px 20px; background-color: #555; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 1rem; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: all 0.2s; font-family: 'NanumSquareRound', sans-serif;}
         .btn:hover { background-color: #333; transform: translateY(-2px); }
         .btn-bulk { background-color: #8e44ad; }
         .btn-bulk:hover { background-color: #732d91; }
 
-        /* 중앙 정렬용 타이틀 */
-        .page-title { font-size: 2.5rem; color: #2c3e50; margin-bottom: 10px; text-align: center; }
+        /* 🚀 중앙 정렬용 타이틀 (margin-bottom을 늘려서 아래 요소와의 간격을 띄움) */
+        .page-title { font-size: 2.5rem; color: #2c3e50; margin-bottom: 35px; text-align: center; font-weight: bold; }
 
         /* 초기 화면 전용 */
         .home-btns { display: flex; justify-content: center; gap: 30px; margin-top: 30px; }
-        .btn-large { padding: 20px 40px; font-size: 1.5rem; background-color: #4CAF50; color: white; border: none; border-radius: 10px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: transform 0.2s; }
+        .btn-large { padding: 20px 40px; font-size: 1.5rem; background-color: #4CAF50; color: white; border: none; border-radius: 10px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: transform 0.2s; font-family: 'NanumSquareRound', sans-serif; font-weight: bold;}
         .btn-large:hover { transform: translateY(-3px); background-color: #45a049; }
         .btn-large.secondary { background-color: #3498db; }
         .btn-large.secondary:hover { background-color: #2980b9; }
 
         /* 날짜 네비게이터 (주간) */
-        .date-navigator { display: flex; justify-content: center; align-items: center; margin-bottom: 25px; }
+        .date-navigator { display: flex; justify-content: center; align-items: center; margin-bottom: 30px; }
         .date-box { font-size: 20px; font-weight: bold; border: 2px solid #333; padding: 10px 20px; margin: 0 15px; background: white; border-radius: 8px; }
         .arrow { font-size: 24px; cursor: pointer; user-select: none; padding: 5px 15px; background: #ddd; border-radius: 5px; transition: background 0.2s; }
         .arrow:hover { background: #ccc; }
@@ -85,7 +94,7 @@
         }
         table { width: 100%; min-width: 650px; border-collapse: collapse; }
         th, td { border: 1px solid #ddd; padding: 10px; text-align: center; vertical-align: middle; }
-        th { background-color: #4CAF50; color: white; font-size: 16px; padding: 15px 5px; }
+        th { background-color: #4CAF50; color: white; font-size: 16px; padding: 15px 5px; font-weight: bold; }
         
         tr:first-child th { border-top: none; }
         tr:last-child td { border-bottom: none; }
@@ -102,22 +111,22 @@
         .slot-selected { background-color: #8e44ad !important; color: white !important; font-weight: bold; border: 2px solid #732d91; cursor: pointer; }
         .slot-disabled { background-color: #eee; color: #aaa; cursor: not-allowed; }
         
-        .book-text { font-size: 14px; font-weight: bold; color: #c62828; }
-        .add-icon { color: #aaa; font-size: 12px; }
+        .book-text { font-size: 15px; font-weight: bold; color: #c62828; }
+        .add-icon { color: #aaa; font-size: 13px; }
 
         /* 리스트 관리용 작은 버튼 */
-        .btn-action { padding: 5px 10px; border: none; border-radius: 3px; cursor: pointer; color: white; margin: 0 2px;}
+        .btn-action { padding: 5px 10px; border: none; border-radius: 3px; cursor: pointer; color: white; margin: 0 2px; font-family: 'NanumSquareRound', sans-serif;}
         .btn-edit { background-color: #f39c12; }
         .btn-delete { background-color: #e74c3c; }
 
         /* 달력 스타일 */
         .month-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; width: 100%; max-width: 600px; }
-        .month-btn { padding: 25px; font-size: 1.5rem; background: white; border: 2px solid #4CAF50; border-radius: 10px; cursor: pointer; text-align: center; transition: background 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .month-btn { padding: 25px; font-size: 1.5rem; background: white; border: 2px solid #4CAF50; border-radius: 10px; cursor: pointer; text-align: center; transition: background 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.05); font-weight: bold;}
         .month-btn:hover { background: #4CAF50; color: white; }
         
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-top: 20px; width: 100%; max-width: 800px; }
         .cal-header { background: #eee; font-weight: bold; padding: 15px; text-align: center; border-radius: 5px; }
-        .cal-day { padding: 30px 10px; text-align: center; border: 1px solid #ddd; border-radius: 5px; font-size: 1.5rem; background: white; cursor: pointer; transition: all 0.2s;}
+        .cal-day { padding: 30px 10px; text-align: center; border: 1px solid #ddd; border-radius: 5px; font-size: 1.5rem; background: white; cursor: pointer; transition: all 0.2s; font-weight: bold;}
         .cal-day.weekend { background: #f9f9f9; color: #aaa; cursor: not-allowed; }
         .cal-day:hover:not(.weekend):not(.empty) { background: #e8f5e9; border-color: #4CAF50; transform: scale(1.05); box-shadow: 0 4px 10px rgba(0,0,0,0.1); z-index: 2;}
         .cal-day.empty { border: none; background: transparent; cursor: default; }
@@ -125,9 +134,9 @@
         /* 모달창 스타일 */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; z-index: 1000; }
         .modal-content { background: white; padding: 30px; border-radius: 10px; width: 350px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
-        .modal input, .modal select { width: 90%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; font-family: inherit; font-size: 14px; }
-        .save-btn { background-color: #4CAF50; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-top: 10px; width: 100%; font-size: 16px; font-weight: bold;}
-        .cancel-btn { background: #ccc; color: #333; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-top: 10px; width: 100%; font-size: 16px; }
+        .modal input, .modal select { width: 90%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; font-family: 'NanumSquareRound', sans-serif; font-size: 14px; }
+        .save-btn { background-color: #4CAF50; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-top: 10px; width: 100%; font-size: 16px; font-weight: bold; font-family: 'NanumSquareRound', sans-serif;}
+        .cancel-btn { background: #ccc; color: #333; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-top: 10px; width: 100%; font-size: 16px; font-family: 'NanumSquareRound', sans-serif;}
 
         .admin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
         .admin-box { background: #eee; padding: 20px; border-radius: 8px; cursor: pointer; font-weight: bold; }
@@ -209,7 +218,7 @@
 
     <div id="bulkSelectModal" class="modal">
         <div class="modal-content" style="width: 95%; max-width: 800px;">
-            <h2 style="color: #8e44ad;">한번에 예약하기 (시간 선택)</h2>
+            <h2 style="color: #8e44ad; font-weight: bold;">한번에 예약하기 (시간 선택)</h2>
             <p style="color: #555; font-size: 14px;">예약하고 싶은 시간을 모두 클릭한 후 다음 버튼을 누르세요.</p>
             
             <div class="table-wrapper" style="max-height: 50vh; overflow-y: auto; margin-bottom: 0;">
@@ -225,7 +234,7 @@
 
     <div id="reservationModal" class="modal">
         <div class="modal-content">
-            <h2 id="modalTitle">예약하기</h2>
+            <h2 id="modalTitle" style="font-weight: bold;">예약하기</h2>
             <input type="hidden" id="editDateKey">
             <select id="resGrade">
                 <option value="" disabled selected>학년 선택</option>
@@ -257,7 +266,7 @@
 
     <div id="adminModal" class="modal">
         <div class="modal-content" style="width: 400px;">
-            <h2>관리자 설정</h2>
+            <h2 style="font-weight: bold;">관리자 설정</h2>
             <div id="adminLogin">
                 <input type="password" id="adminPwdInput" placeholder="비밀번호를 입력하세요">
                 <button class="save-btn" onclick="checkAdmin()">확인</button>
@@ -274,7 +283,7 @@
 
     <div id="pwdModal" class="modal">
         <div class="modal-content">
-            <h2>비밀번호 변경</h2>
+            <h2 style="font-weight: bold;">비밀번호 변경</h2>
             <input type="password" id="oldPwd" placeholder="현재 비밀번호">
             <input type="password" id="newPwd" placeholder="바꿀 비밀번호">
             <input type="password" id="newPwdConfirm" placeholder="바꿀 비밀번호 확인">
