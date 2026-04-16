@@ -37,18 +37,11 @@
         .arrow { font-size: 24px; cursor: pointer; user-select: none; padding: 5px 15px; background: #ddd; border-radius: 5px; }
         .arrow:hover { background: #ccc; }
 
-        /* 표 스타일 변경 (크기 축소, 중앙 정렬, 둥근 모서리) */
-        .table-wrapper {
-            max-width: 600px;
-            margin: 0 auto 30px auto;
-            border-radius: 15px;
-            overflow: hidden;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
+        /* 표 스타일 */
+        .table-wrapper { max-width: 600px; margin: 0 auto 30px auto; border-radius: 15px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         table { width: 100%; border-collapse: collapse; background: white; }
         th, td { border: 1px solid #ddd; padding: 15px; text-align: center; }
         th { background-color: #4CAF50; color: white; font-size: 18px; }
-        
         tr:first-child th { border-top: none; }
         tr:last-child td { border-bottom: none; }
         th:first-child, td:first-child { border-left: none; }
@@ -66,7 +59,6 @@
         .month-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; max-width: 600px; margin: 0 auto; }
         .month-btn { padding: 20px; font-size: 1.2rem; background: white; border: 2px solid #4CAF50; border-radius: 10px; cursor: pointer; text-align: center; transition: background 0.2s; }
         .month-btn:hover { background: #4CAF50; color: white; }
-        
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-top: 20px; }
         .cal-header { background: #eee; font-weight: bold; padding: 10px; text-align: center; }
         .cal-day { padding: 20px 10px; text-align: center; border: 1px solid #ddd; border-radius: 5px; font-size: 1.2rem; background: white; }
@@ -76,7 +68,7 @@
         .cal-day.full { background: #e0e0e0; cursor: pointer; color: #777; }
         .cal-day.empty { border: none; background: transparent; }
 
-        /* 모달창 스타일 (select 태그 디자인 추가) */
+        /* 모달창 스타일 */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; }
         .modal-content { background: white; padding: 30px; border-radius: 10px; width: 350px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
         .modal input, .modal select { width: 90%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; font-family: inherit; font-size: 14px; }
@@ -105,8 +97,7 @@
             <h2>월별 달력 보기</h2>
             <div style="width:80px;"></div>
         </div>
-        <div class="month-grid" id="monthGrid">
-            </div>
+        <div class="month-grid" id="monthGrid"></div>
     </div>
 
     <div id="screen-calendar" class="screen">
@@ -115,8 +106,7 @@
             <h2 id="calendarTitle">2026년 O월 달력</h2>
             <button class="btn" onclick="showScreen('screen-month-select')">🔙 월 선택</button>
         </div>
-        <div class="calendar-grid" id="calendarGrid">
-            </div>
+        <div class="calendar-grid" id="calendarGrid"></div>
     </div>
 
     <div id="screen-daily" class="screen">
@@ -148,7 +138,6 @@
             <h1>예약 관리 (수정 및 삭제)</h1>
             <button class="btn" onclick="goHome()">완료</button>
         </div>
-        
         <div class="table-wrapper">
             <table>
                 <thead><tr><th>날짜</th><th>교시</th><th>예약내용</th><th>관리</th></tr></thead>
@@ -214,7 +203,25 @@
         </div>
     </div>
 
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
     <script>
+        // 🟢 1. 선생님이 주신 파이어베이스 정보 세팅
+        const firebaseConfig = {
+            apiKey: "AIzaSyB-QM37R2uhMsb074E5YMmn-CsIArE-mgs",
+            authDomain: "gym-schedule-ce39e.firebaseapp.com",
+            databaseURL: "https://gym-schedule-ce39e-default-rtdb.firebaseio.com", // 에러 방지를 위해 명시적으로 추가했습니다.
+            projectId: "gym-schedule-ce39e",
+            storageBucket: "gym-schedule-ce39e.firebasestorage.app",
+            messagingSenderId: "579577452137",
+            appId: "1:579577452137:web:fbe88244a09421b33634f8"
+        };
+
+        // 파이어베이스 시작!
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database(); // 데이터베이스 준비 완료
+
         const CURRENT_YEAR = 2026;
         const periods = ["1교시", "2교시", "3교시", "4교시", "5교시", "6교시", "7교시"];
         const periodTimes = ["09:00~09:40", "09:50~10:30", "10:40~11:20", "11:30~12:10", "12:20~13:00", "13:00~13:40", "13:50~14:30"];
@@ -222,13 +229,25 @@
         let currentDate = new Date();
         let currentSelectedPeriod = null;
         let isEditMode = false;
+        let currentViewMonth = null; // 달력 실시간 갱신용
+        
+        let reservationsData = {};
+        let adminPassword = localStorage.getItem('gymPwd') || "0000"; // 비밀번호는 로컬 유지
 
-        let reservationsData = JSON.parse(localStorage.getItem('gymData')) || {};
-        let adminPassword = localStorage.getItem('gymPwd') || "0000";
-
-        function saveData() {
-            localStorage.setItem('gymData', JSON.stringify(reservationsData));
-        }
+        // 🟢 2. 실시간 데이터 동기화 (마법이 일어나는 부분!)
+        // 누군가 데이터를 바꾸면 모든 사람의 화면에서 이 함수가 자동으로 실행됩니다.
+        db.ref('reservations').on('value', (snapshot) => {
+            reservationsData = snapshot.val() || {}; // 서버에서 최신 정보 가져오기
+            
+            // 현재 어떤 화면을 보고 있는지에 따라 그 화면을 새로고침 해줍니다.
+            if (document.getElementById('screen-daily').classList.contains('active')) {
+                updateDailyDisplay();
+            } else if (document.getElementById('screen-admin-list').classList.contains('active')) {
+                openAdminList();
+            } else if (document.getElementById('screen-calendar').classList.contains('active') && currentViewMonth !== null) {
+                renderCalendar(currentViewMonth);
+            }
+        });
 
         function showScreen(screenId) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -236,9 +255,7 @@
             if(screenId === 'screen-month-select') renderMonthSelect();
         }
 
-        function goHome() {
-            showScreen('screen-home');
-        }
+        function goHome() { showScreen('screen-home'); }
 
         function formatDateStr(date) {
             const days = ["일", "월", "화", "수", "목", "금", "토"];
@@ -268,14 +285,13 @@
         }
 
         function renderCalendar(month) {
+            currentViewMonth = month;
             document.getElementById("calendarTitle").innerText = `${CURRENT_YEAR}년 ${month}월`;
             const grid = document.getElementById("calendarGrid");
             grid.innerHTML = "";
             
             const days = ["일", "월", "화", "수", "목", "금", "토"];
-            days.forEach(d => {
-                grid.innerHTML += `<div class="cal-header">${d}</div>`;
-            });
+            days.forEach(d => { grid.innerHTML += `<div class="cal-header">${d}</div>`; });
 
             const firstDay = new Date(CURRENT_YEAR, month - 1, 1).getDay();
             const lastDate = new Date(CURRENT_YEAR, month, 0).getDate();
@@ -358,17 +374,15 @@
                 document.getElementById("editDateKey").value = getDateKey(currentDate);
             }
             
-            // 모달창 열 때 초기화 처리
             document.getElementById("resGrade").value = "";
             document.getElementById("resClass").value = "";
             document.getElementById("resTeacher").value = "";
             document.getElementById("reservationModal").style.display = "flex";
         }
 
-        function closeModal(id) {
-            document.getElementById(id).style.display = "none";
-        }
+        function closeModal(id) { document.getElementById(id).style.display = "none"; }
 
+        // 🟢 3. 데이터를 파이어베이스에 저장하도록 변경
         function saveReservation() {
             const dateKey = document.getElementById("editDateKey").value;
             const grade = document.getElementById("resGrade").value || '';
@@ -376,24 +390,19 @@
             const teacher = document.getElementById("resTeacher").value;
 
             if (!teacher) { alert("선생님 성함이나 내용을 입력해주세요."); return; }
-
-            // 학년이나 반을 선택하지 않고 선생님 성함만 적었을 경우도 고려해 trim()으로 깔끔하게 정리
             const text = `${grade} ${classNum} ${teacher}`.trim();
             
-            if (!reservationsData[dateKey]) reservationsData[dateKey] = {};
-            // 작성자 이름이 없어졌으므로 선생님 성함을 작성자로 대신 표시합니다.
-            reservationsData[dateKey][currentSelectedPeriod] = { text: text, author: `작성자: ${teacher}` };
-            
-            saveData();
-            closeModal('reservationModal');
-            
-            alert("저장되었습니다.");
-            
-            if (isEditMode) {
-                openAdminList();
-            } else {
-                updateDailyDisplay();
-            }
+            // 기존의 로컬 저장(saveData) 대신 파이어베이스로 쏩니다!
+            db.ref(`reservations/${dateKey}/${currentSelectedPeriod}`).set({
+                text: text, 
+                author: `작성자: ${teacher}`
+            }).then(() => {
+                closeModal('reservationModal');
+                alert("저장되었습니다.");
+                // db.ref('reservations').on('value', ...) 가 자동으로 화면을 새로고침해 줍니다.
+            }).catch((error) => {
+                alert("저장에 실패했습니다. 인터넷 상태를 확인해주세요.");
+            });
         }
 
         function openAdminModal() {
@@ -407,9 +416,7 @@
             if (document.getElementById("adminPwdInput").value === adminPassword) {
                 document.getElementById("adminLogin").style.display = "none";
                 document.getElementById("adminPanel").style.display = "block";
-            } else {
-                alert("비밀번호가 틀렸습니다.");
-            }
+            } else { alert("비밀번호가 틀렸습니다."); }
         }
 
         function openChangePwdModal() {
@@ -430,6 +437,7 @@
             if (newP === "") { alert("새 비밀번호를 입력하세요."); return; }
 
             localStorage.setItem('gymPwd', newP);
+            adminPassword = newP;
             alert("비밀번호가 성공적으로 변경되었습니다.");
             closeModal('pwdModal');
         }
@@ -462,15 +470,14 @@
             showScreen('screen-admin-list');
         }
 
+        // 🟢 4. 데이터를 파이어베이스에서 삭제하도록 변경
         function deleteReservation(dateKey, period) {
             if (confirm(`정말 ${dateKey} ${period} 예약을 삭제하시겠습니까?`)) {
-                delete reservationsData[dateKey][period];
-                if (Object.keys(reservationsData[dateKey]).length === 0) {
-                    delete reservationsData[dateKey];
-                }
-                saveData();
-                alert("삭제되었습니다.");
-                openAdminList();
+                // 파이어베이스에서 삭제!
+                db.ref(`reservations/${dateKey}/${period}`).remove().then(() => {
+                    alert("삭제되었습니다.");
+                    // 빈 공간도 파이어베이스가 알아서 정리해 줍니다. 
+                });
             }
         }
     </script>
