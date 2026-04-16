@@ -31,29 +31,41 @@
         .btn-edit { background-color: #f39c12; }
         .btn-delete { background-color: #e74c3c; }
 
-        /* 날짜 네비게이터 (일별) */
+        /* 날짜 네비게이터 (주간) */
         .date-navigator { display: flex; justify-content: center; align-items: center; margin-bottom: 20px; }
-        .date-box { font-size: 24px; font-weight: bold; border: 2px solid #333; padding: 10px 30px; margin: 0 15px; background: white; border-radius: 8px; }
+        .date-box { font-size: 20px; font-weight: bold; border: 2px solid #333; padding: 10px 20px; margin: 0 15px; background: white; border-radius: 8px; }
         .arrow { font-size: 24px; cursor: pointer; user-select: none; padding: 5px 15px; background: #ddd; border-radius: 5px; }
         .arrow:hover { background: #ccc; }
 
-        /* 표 스타일 */
-        .table-wrapper { max-width: 600px; margin: 0 auto 30px auto; border-radius: 15px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        table { width: 100%; border-collapse: collapse; background: white; }
-        th, td { border: 1px solid #ddd; padding: 15px; text-align: center; }
-        th { background-color: #4CAF50; color: white; font-size: 18px; }
+        /* 주간 표 스타일 (가로 스크롤 적용) */
+        .table-wrapper { 
+            max-width: 1000px; 
+            margin: 0 auto 30px auto; 
+            border-radius: 15px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
+            overflow-x: auto; /* 스마트폰에서 좌우로 밀어서 볼 수 있게 함 */
+            background: white;
+        }
+        table { width: 100%; min-width: 650px; border-collapse: collapse; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: center; vertical-align: middle; }
+        th { background-color: #4CAF50; color: white; font-size: 16px; padding: 15px 5px; }
+        
         tr:first-child th { border-top: none; }
         tr:last-child td { border-bottom: none; }
-        th:first-child, td:first-child { border-left: none; }
+        th:first-child, td:first-child { border-left: none; background-color: #f9f9f9; }
         th:last-child, td:last-child { border-right: none; }
 
-        .period-info { font-weight: bold; font-size: 18px; }
-        .time-info { font-size: 12px; color: #666; margin-top: 5px; }
+        .period-info { font-weight: bold; font-size: 16px; }
+        .time-info { font-size: 11px; color: #666; margin-top: 3px; }
+        
+        /* 예약 슬롯 스타일 */
         .slot-available { cursor: pointer; transition: background 0.2s; }
-        .slot-available:hover { background-color: #f0f8ff; }
-        .status-blue { color: #4d94ff; font-weight: bold; } 
-        .status-red { color: #ff4d4d; font-weight: bold; } 
-        .author-text { font-size: 11px; color: #888; display: block; margin-top: 5px; }
+        .slot-available:hover { background-color: #e8f5e9; }
+        .slot-booked { background-color: #ffebee; border: 1px solid #ffcdd2; }
+        
+        .book-text { font-size: 13px; font-weight: bold; color: #c62828; }
+        .author-text { font-size: 11px; color: #555; display: block; margin-top: 3px; }
+        .add-icon { color: #aaa; font-size: 12px; }
 
         /* 달력 스타일 */
         .month-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; max-width: 600px; margin: 0 auto; }
@@ -61,12 +73,10 @@
         .month-btn:hover { background: #4CAF50; color: white; }
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-top: 20px; }
         .cal-header { background: #eee; font-weight: bold; padding: 10px; text-align: center; }
-        .cal-day { padding: 20px 10px; text-align: center; border: 1px solid #ddd; border-radius: 5px; font-size: 1.2rem; background: white; }
+        .cal-day { padding: 20px 10px; text-align: center; border: 1px solid #ddd; border-radius: 5px; font-size: 1.2rem; background: white; cursor: pointer; }
         .cal-day.weekend { background: #f9f9f9; color: #aaa; cursor: not-allowed; }
-        .cal-day.available { background: #fffde7; cursor: pointer; border-color: #fbc02d; }
-        .cal-day.available:hover { background: #fff9c4; }
-        .cal-day.full { background: #e0e0e0; cursor: pointer; color: #777; }
-        .cal-day.empty { border: none; background: transparent; }
+        .cal-day:hover:not(.weekend):not(.empty) { background: #e8f5e9; border-color: #4CAF50; }
+        .cal-day.empty { border: none; background: transparent; cursor: default; }
 
         /* 모달창 스타일 */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; }
@@ -86,7 +96,7 @@
         <h1>체육관 사용 현황판</h1>
         <div class="home-btns">
             <button class="btn-large" onclick="showScreen('screen-month-select')">📅 예약 (달력)</button>
-            <button class="btn-large secondary" onclick="goToToday()">🏃 오늘로 이동</button>
+            <button class="btn-large secondary" onclick="goToToday()">🏃 이번 주로 이동</button>
         </div>
         <button class="btn" style="margin-top: 50px;" onclick="openAdminModal()">⚙️ 관리자 설정</button>
     </div>
@@ -109,25 +119,29 @@
         <div class="calendar-grid" id="calendarGrid"></div>
     </div>
 
-    <div id="screen-daily" class="screen">
+    <div id="screen-weekly" class="screen">
         <div class="header">
             <h2 onclick="goHome()">🏠 홈으로</h2>
-            <h1>일일 체육관 사용 현황</h1>
+            <h1>주간 체육관 사용 현황</h1>
             <div class="top-buttons">
                 <button class="btn" onclick="showScreen('screen-month-select')">📅 달력보기</button>
                 <button class="btn" onclick="openAdminModal()">⚙️ 설정</button>
             </div>
         </div>
+        
         <div class="date-navigator">
-            <div class="arrow" onclick="changeDate(-1)">&#9664;</div>
-            <div class="date-box" id="currentDateDisplay">04-15-수요일</div>
-            <div class="arrow" onclick="changeDate(1)">&#9654;</div>
+            <div class="arrow" onclick="changeWeek(-1)">&#9664; 이전 주</div>
+            <div class="date-box" id="currentWeekDisplay">MM/DD ~ MM/DD</div>
+            <div class="arrow" onclick="changeWeek(1)">다음 주 &#9654;</div>
         </div>
         
         <div class="table-wrapper">
             <table>
-                <thead><tr><th style="width: 25%;">교시</th><th style="width: 50%;">사용하는 사람</th><th style="width: 25%;">예약여부</th></tr></thead>
-                <tbody id="tableBody"></tbody>
+                <thead>
+                    <tr id="weeklyHeader">
+                        </tr>
+                </thead>
+                <tbody id="weeklyBody"></tbody>
             </table>
         </div>
     </div>
@@ -207,20 +221,19 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
     <script>
-        // 🟢 1. 선생님이 주신 파이어베이스 정보 세팅
+        // 선생님의 파이어베이스 설정
         const firebaseConfig = {
             apiKey: "AIzaSyB-QM37R2uhMsb074E5YMmn-CsIArE-mgs",
             authDomain: "gym-schedule-ce39e.firebaseapp.com",
-            databaseURL: "https://gym-schedule-ce39e-default-rtdb.firebaseio.com", // 에러 방지를 위해 명시적으로 추가했습니다.
+            databaseURL: "https://gym-schedule-ce39e-default-rtdb.firebaseio.com",
             projectId: "gym-schedule-ce39e",
             storageBucket: "gym-schedule-ce39e.firebasestorage.app",
             messagingSenderId: "579577452137",
             appId: "1:579577452137:web:fbe88244a09421b33634f8"
         };
 
-        // 파이어베이스 시작!
         firebase.initializeApp(firebaseConfig);
-        const db = firebase.database(); // 데이터베이스 준비 완료
+        const db = firebase.database();
 
         const CURRENT_YEAR = 2026;
         const periods = ["1교시", "2교시", "3교시", "4교시", "5교시", "6교시", "7교시"];
@@ -229,19 +242,17 @@
         let currentDate = new Date();
         let currentSelectedPeriod = null;
         let isEditMode = false;
-        let currentViewMonth = null; // 달력 실시간 갱신용
+        let currentViewMonth = null;
         
         let reservationsData = {};
-        let adminPassword = localStorage.getItem('gymPwd') || "0000"; // 비밀번호는 로컬 유지
+        let adminPassword = localStorage.getItem('gymPwd') || "0000";
 
-        // 🟢 2. 실시간 데이터 동기화 (마법이 일어나는 부분!)
-        // 누군가 데이터를 바꾸면 모든 사람의 화면에서 이 함수가 자동으로 실행됩니다.
+        // 실시간 동기화
         db.ref('reservations').on('value', (snapshot) => {
-            reservationsData = snapshot.val() || {}; // 서버에서 최신 정보 가져오기
+            reservationsData = snapshot.val() || {};
             
-            // 현재 어떤 화면을 보고 있는지에 따라 그 화면을 새로고침 해줍니다.
-            if (document.getElementById('screen-daily').classList.contains('active')) {
-                updateDailyDisplay();
+            if (document.getElementById('screen-weekly').classList.contains('active')) {
+                updateWeeklyDisplay();
             } else if (document.getElementById('screen-admin-list').classList.contains('active')) {
                 openAdminList();
             } else if (document.getElementById('screen-calendar').classList.contains('active') && currentViewMonth !== null) {
@@ -257,19 +268,22 @@
 
         function goHome() { showScreen('screen-home'); }
 
-        function formatDateStr(date) {
-            const days = ["일", "월", "화", "수", "목", "금", "토"];
-            return `${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}-${days[date.getDay()]}요일`;
+        // 특정 날짜가 포함된 주의 '월요일'을 찾는 함수
+        function getMonday(d) {
+            d = new Date(d);
+            let day = d.getDay();
+            let diff = d.getDate() - day + (day === 0 ? -6 : 1); // 일요일(0)이면 6일을 빼서 월요일로 맞춤
+            return new Date(d.setDate(diff));
         }
-        
+
         function getDateKey(date) {
             return `${CURRENT_YEAR}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
         }
 
         function goToToday() {
             currentDate = new Date();
-            updateDailyDisplay();
-            showScreen('screen-daily');
+            updateWeeklyDisplay();
+            showScreen('screen-weekly');
         }
 
         function renderMonthSelect() {
@@ -300,7 +314,6 @@
 
             for(let day=1; day<=lastDate; day++) {
                 let targetDate = new Date(CURRENT_YEAR, month - 1, day);
-                let dateKey = getDateKey(targetDate);
                 let dayOfWeek = targetDate.getDay();
                 
                 let dayDiv = document.createElement("div");
@@ -309,19 +322,12 @@
                 if (dayOfWeek === 0 || dayOfWeek === 6) {
                     dayDiv.className = "cal-day weekend";
                 } else {
-                    let dayData = reservationsData[dateKey] || {};
-                    let bookedCount = Object.keys(dayData).length;
-                    
-                    if (bookedCount >= 7) {
-                        dayDiv.className = "cal-day full";
-                    } else {
-                        dayDiv.className = "cal-day available";
-                    }
-                    
+                    dayDiv.className = "cal-day";
+                    // 달력에서 날짜를 누르면 그 날짜가 포함된 '주간 현황판'으로 이동합니다!
                     dayDiv.onclick = () => {
                         currentDate = targetDate;
-                        updateDailyDisplay();
-                        showScreen('screen-daily');
+                        updateWeeklyDisplay();
+                        showScreen('screen-weekly');
                     };
                 }
                 grid.appendChild(dayDiv);
@@ -329,49 +335,80 @@
             showScreen('screen-calendar');
         }
 
-        function changeDate(days) {
-            currentDate.setDate(currentDate.getDate() + days);
-            updateDailyDisplay();
+        function changeWeek(offset) {
+            currentDate.setDate(currentDate.getDate() + (offset * 7));
+            updateWeeklyDisplay();
         }
 
-        function updateDailyDisplay() {
-            document.getElementById("currentDateDisplay").innerText = formatDateStr(currentDate);
-            const tbody = document.getElementById("tableBody");
+        // 주간 시간표 그리기 함수
+        function updateWeeklyDisplay() {
+            const monday = getMonday(currentDate);
+            const friday = new Date(monday);
+            friday.setDate(monday.getDate() + 4); // 월요일 + 4일 = 금요일
+
+            // 상단 날짜 표시 (예: 4/15 ~ 4/19)
+            document.getElementById("currentWeekDisplay").innerText = 
+                `${monday.getMonth()+1}/${monday.getDate()} ~ ${friday.getMonth()+1}/${friday.getDate()}`;
+
+            // 테이블 헤더 (요일 표시) 업데이트
+            const headerRow = document.getElementById("weeklyHeader");
+            headerRow.innerHTML = `<th style="width: 15%;">교시</th>`;
+            
+            let weekDates = [];
+            const dayNames = ["월", "화", "수", "목", "금"];
+            for(let i=0; i<5; i++) {
+                let d = new Date(monday);
+                d.setDate(monday.getDate() + i);
+                weekDates.push(d);
+                headerRow.innerHTML += `<th style="width: 17%;">${d.getMonth()+1}/${d.getDate()} (${dayNames[i]})</th>`;
+            }
+
+            // 테이블 내용 (교시별 예약) 업데이트
+            const tbody = document.getElementById("weeklyBody");
             tbody.innerHTML = "";
-            const dateKey = getDateKey(currentDate);
-            const dayData = reservationsData[dateKey] || {};
 
             periods.forEach((periodName, index) => {
                 const tr = document.createElement("tr");
-                const res = dayData[periodName];
-                
-                if (res) {
-                    tr.innerHTML = `
-                        <td><div class="period-info">${periodName}</div><div class="time-info">${periodTimes[index]}</div></td>
-                        <td>${res.text} <span class="author-text">${res.author}</span></td>
-                        <td><span class="status-red">예약 불가</span></td>
-                    `;
-                } else {
-                    tr.innerHTML = `
-                        <td><div class="period-info">${periodName}</div><div class="time-info">${periodTimes[index]}</div></td>
-                        <td class="slot-available" onclick="openReservationModal('${periodName}')"><span style="color:#aaa;">(클릭하여 예약)</span></td>
-                        <td><span class="status-blue">예약 가능</span></td>
-                    `;
-                }
+                let tdHtml = `<td><div class="period-info">${periodName}</div><div class="time-info">${periodTimes[index]}</div></td>`;
+
+                weekDates.forEach(dateObj => {
+                    const dateKey = getDateKey(dateObj);
+                    const dayData = reservationsData[dateKey] || {};
+                    const res = dayData[periodName];
+
+                    if (res) {
+                        // 예약이 있는 경우 (빨간색)
+                        tdHtml += `
+                            <td class="slot-booked">
+                                <div class="book-text">${res.text}</div>
+                                <div class="author-text">${res.author}</div>
+                            </td>
+                        `;
+                    } else {
+                        // 예약이 없는 경우 (클릭 가능)
+                        tdHtml += `
+                            <td class="slot-available" onclick="openReservationModal('${periodName}', '${dateKey}', false)">
+                                <span class="add-icon">➕ 클릭하여 예약</span>
+                            </td>
+                        `;
+                    }
+                });
+                tr.innerHTML = tdHtml;
                 tbody.appendChild(tr);
             });
         }
 
-        function openReservationModal(period, dateKey = null) {
-            isEditMode = dateKey !== null;
+        // isEdit 매개변수를 추가하여 수정인지 신규인지 구분합니다.
+        function openReservationModal(period, targetDateKey, isEdit) {
+            isEditMode = isEdit;
             currentSelectedPeriod = period;
-            
+            document.getElementById("editDateKey").value = targetDateKey;
+
             if (isEditMode) {
                 document.getElementById("modalTitle").innerText = "예약 수정";
-                document.getElementById("editDateKey").value = dateKey;
             } else {
-                document.getElementById("modalTitle").innerText = `${formatDateStr(currentDate)} ${period} 예약`;
-                document.getElementById("editDateKey").value = getDateKey(currentDate);
+                let parts = targetDateKey.split('-');
+                document.getElementById("modalTitle").innerText = `${parts[1]}월 ${parts[2]}일 ${period} 예약`;
             }
             
             document.getElementById("resGrade").value = "";
@@ -382,7 +419,6 @@
 
         function closeModal(id) { document.getElementById(id).style.display = "none"; }
 
-        // 🟢 3. 데이터를 파이어베이스에 저장하도록 변경
         function saveReservation() {
             const dateKey = document.getElementById("editDateKey").value;
             const grade = document.getElementById("resGrade").value || '';
@@ -392,14 +428,12 @@
             if (!teacher) { alert("선생님 성함이나 내용을 입력해주세요."); return; }
             const text = `${grade} ${classNum} ${teacher}`.trim();
             
-            // 기존의 로컬 저장(saveData) 대신 파이어베이스로 쏩니다!
             db.ref(`reservations/${dateKey}/${currentSelectedPeriod}`).set({
                 text: text, 
                 author: `작성자: ${teacher}`
             }).then(() => {
                 closeModal('reservationModal');
                 alert("저장되었습니다.");
-                // db.ref('reservations').on('value', ...) 가 자동으로 화면을 새로고침해 줍니다.
             }).catch((error) => {
                 alert("저장에 실패했습니다. 인터넷 상태를 확인해주세요.");
             });
@@ -459,7 +493,7 @@
                             <td>${period}</td>
                             <td>${dayData[period].text}</td>
                             <td>
-                                <button class="btn-action btn-edit" onclick="openReservationModal('${period}', '${dateKey}')">수정</button>
+                                <button class="btn-action btn-edit" onclick="openReservationModal('${period}', '${dateKey}', true)">수정</button>
                                 <button class="btn-action btn-delete" onclick="deleteReservation('${dateKey}', '${period}')">삭제</button>
                             </td>
                         `;
@@ -470,13 +504,10 @@
             showScreen('screen-admin-list');
         }
 
-        // 🟢 4. 데이터를 파이어베이스에서 삭제하도록 변경
         function deleteReservation(dateKey, period) {
             if (confirm(`정말 ${dateKey} ${period} 예약을 삭제하시겠습니까?`)) {
-                // 파이어베이스에서 삭제!
                 db.ref(`reservations/${dateKey}/${period}`).remove().then(() => {
                     alert("삭제되었습니다.");
-                    // 빈 공간도 파이어베이스가 알아서 정리해 줍니다. 
                 });
             }
         }
