@@ -27,6 +27,8 @@
         .top-buttons { display: flex; gap: 10px; }
         .btn { padding: 8px 15px; background-color: #555; color: white; border: none; border-radius: 5px; cursor: pointer; }
         .btn:hover { background-color: #333; }
+        .btn-bulk { background-color: #8e44ad; font-weight: bold; } /* 한번에 예약 버튼 강조 */
+        .btn-bulk:hover { background-color: #732d91; }
         .btn-action { padding: 5px 10px; border: none; border-radius: 3px; cursor: pointer; color: white; margin: 0 2px;}
         .btn-edit { background-color: #f39c12; }
         .btn-delete { background-color: #e74c3c; }
@@ -62,6 +64,8 @@
         .slot-available { cursor: pointer; transition: background 0.2s; }
         .slot-available:hover { background-color: #e8f5e9; }
         .slot-booked { background-color: #ffebee; border: 1px solid #ffcdd2; }
+        .slot-selected { background-color: #8e44ad !important; color: white !important; font-weight: bold; border: 2px solid #732d91; cursor: pointer; }
+        .slot-disabled { background-color: #eee; color: #aaa; cursor: not-allowed; }
         
         .book-text { font-size: 14px; font-weight: bold; color: #c62828; }
         .add-icon { color: #aaa; font-size: 12px; }
@@ -81,12 +85,15 @@
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; }
         .modal-content { background: white; padding: 30px; border-radius: 10px; width: 350px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
         .modal input, .modal select { width: 90%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; font-family: inherit; font-size: 14px; }
-        .save-btn { background-color: #4CAF50; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-top: 10px; width: 100%; font-size: 16px; }
+        .save-btn { background-color: #4CAF50; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-top: 10px; width: 100%; font-size: 16px; font-weight: bold;}
         .cancel-btn { background: #ccc; color: #333; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-top: 10px; width: 100%; font-size: 16px; }
 
         .admin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
         .admin-box { background: #eee; padding: 20px; border-radius: 8px; cursor: pointer; font-weight: bold; }
         .admin-box:hover { background: #ddd; }
+        
+        /* 모달 내부 하단 버튼 정렬용 */
+        .modal-actions { display: flex; justify-content: space-between; gap: 10px; margin-top: 20px; }
     </style>
 </head>
 <body>
@@ -123,7 +130,8 @@
             <h2 onclick="goHome()">🏠 홈으로</h2>
             <h1>주간 체육관 사용 현황</h1>
             <div class="top-buttons">
-                <button class="btn" onclick="showScreen('screen-month-select')">📅 달력보기</button>
+                <button class="btn btn-bulk" onclick="openBulkSelectModal()">✅ 한번에 예약</button>
+                <button class="btn" onclick="showScreen('screen-month-select')">📅 달력</button>
                 <button class="btn" onclick="openAdminModal()">⚙️ 설정</button>
             </div>
         </div>
@@ -156,6 +164,23 @@
         </div>
     </div>
 
+    <div id="bulkSelectModal" class="modal">
+        <div class="modal-content" style="width: 95%; max-width: 800px;">
+            <h2 style="color: #8e44ad;">한번에 예약하기 (시간 선택)</h2>
+            <p style="color: #555; font-size: 14px;">예약하고 싶은 시간을 모두 클릭한 후 다음 버튼을 누르세요.</p>
+            
+            <div class="table-wrapper" style="max-height: 50vh; overflow-y: auto; margin-bottom: 0;">
+                <table id="bulkTable">
+                    </table>
+            </div>
+            
+            <div class="modal-actions">
+                <button class="cancel-btn" onclick="closeModal('bulkSelectModal')">취소</button>
+                <button class="save-btn" style="background-color: #8e44ad;" onclick="goToBulkInput()">다음 ➡</button>
+            </div>
+        </div>
+    </div>
+
     <div id="reservationModal" class="modal">
         <div class="modal-content">
             <h2 id="modalTitle">예약하기</h2>
@@ -180,8 +205,11 @@
                 <option value="6반">6반</option>
             </select>
             <input type="text" id="resTeacher" placeholder="선생님 성함 (또는 주관식)">
-            <button class="save-btn" onclick="saveReservation()">저장하기</button>
-            <button class="cancel-btn" onclick="closeModal('reservationModal')">취소</button>
+            
+            <div class="modal-actions">
+                <button class="cancel-btn" onclick="closeModal('reservationModal')">취소</button>
+                <button class="save-btn" onclick="saveReservation()">저장하기</button>
+            </div>
         </div>
     </div>
 
@@ -240,6 +268,10 @@
         let currentViewMonth = null;
         let reservationsData = {};
         let adminPassword = localStorage.getItem('gymPwd') || "0000";
+
+        // 🚀 일괄 예약 상태 관리용 변수
+        let isBulkMode = false;
+        let bulkSelectionArray = [];
 
         db.ref('reservations').on('value', (snapshot) => {
             reservationsData = snapshot.val() || {};
@@ -320,6 +352,7 @@
             const friday = new Date(monday);
             friday.setDate(monday.getDate() + 4);
             document.getElementById("currentWeekDisplay").innerText = `${monday.getMonth()+1}/${monday.getDate()} ~ ${friday.getMonth()+1}/${friday.getDate()}`;
+            
             const headerRow = document.getElementById("weeklyHeader");
             headerRow.innerHTML = `<th style="width: 15%;">교시</th>`;
             let weekDates = [];
@@ -330,6 +363,7 @@
                 weekDates.push(d);
                 headerRow.innerHTML += `<th style="width: 17%;">${d.getMonth()+1}/${d.getDate()} (${dayNames[i]})</th>`;
             }
+
             const tbody = document.getElementById("weeklyBody");
             tbody.innerHTML = "";
             periods.forEach((periodName, index) => {
@@ -339,7 +373,6 @@
                     const dateKey = getDateKey(dateObj);
                     const res = (reservationsData[dateKey] || {})[periodName];
                     if (res) {
-                        // 🟢 '작성자' 줄을 삭제하고 예약 텍스트만 표시하도록 수정
                         tdHtml += `<td class="slot-booked"><div class="book-text">${res.text}</div></td>`;
                     } else {
                         tdHtml += `<td class="slot-available" onclick="openReservationModal('${periodName}', '${dateKey}', false)"><span class="add-icon">➕ 예약</span></td>`;
@@ -350,12 +383,94 @@
             });
         }
 
+        // 🚀 일괄 예약 선택창 띄우기
+        function openBulkSelectModal() {
+            bulkSelectionArray = [];
+            isBulkMode = true;
+
+            const modalTable = document.getElementById("bulkTable");
+            const monday = getMonday(currentDate);
+
+            // 헤더 생성
+            let headerHtml = `<thead><tr><th style="width:15%">교시</th>`;
+            let weekDates = [];
+            const dayNames = ["월", "화", "수", "목", "금"];
+            for(let i=0; i<5; i++) {
+                let d = new Date(monday);
+                d.setDate(monday.getDate() + i);
+                weekDates.push(d);
+                headerHtml += `<th>${d.getDate()}일(${dayNames[i]})</th>`;
+            }
+            headerHtml += `</tr></thead><tbody id="bulkBody"></tbody>`;
+            modalTable.innerHTML = headerHtml;
+
+            // 바디(내용) 생성
+            const tbody = document.getElementById("bulkBody");
+            periods.forEach(period => {
+                const tr = document.createElement("tr");
+                let tdHtml = `<td style="font-weight:bold;">${period}</td>`;
+                
+                weekDates.forEach(dateObj => {
+                    const dateKey = getDateKey(dateObj);
+                    const res = (reservationsData[dateKey] || {})[period];
+                    
+                    if (res) {
+                        tdHtml += `<td class="slot-disabled">예약됨</td>`;
+                    } else {
+                        tdHtml += `<td class="slot-available" onclick="toggleBulkSlot('${dateKey}', '${period}', this)"><span class="add-icon">선택가능</span></td>`;
+                    }
+                });
+                tr.innerHTML = tdHtml;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById("bulkSelectModal").style.display = "flex";
+        }
+
+        // 🚀 일괄 예약: 칸 클릭 시 선택/해제 토글
+        function toggleBulkSlot(dateKey, period, cell) {
+            const index = bulkSelectionArray.findIndex(item => item.dateKey === dateKey && item.period === period);
+            
+            if (index > -1) {
+                // 이미 선택된 상태면 배열에서 빼고 색상 원상복구
+                bulkSelectionArray.splice(index, 1);
+                cell.classList.remove('slot-selected');
+                cell.classList.add('slot-available');
+                cell.innerHTML = `<span class="add-icon">선택가능</span>`;
+            } else {
+                // 선택 안 된 상태면 배열에 넣고 보라색으로 칠하기
+                bulkSelectionArray.push({ dateKey, period });
+                cell.classList.remove('slot-available');
+                cell.classList.add('slot-selected');
+                cell.innerHTML = `✔️ 선택됨`;
+            }
+        }
+
+        // 🚀 일괄 예약: 다음 버튼 누르면 입력창으로 넘어가기
+        function goToBulkInput() {
+            if (bulkSelectionArray.length === 0) {
+                alert("예약할 시간을 1개 이상 선택해주세요!");
+                return;
+            }
+            closeModal('bulkSelectModal');
+            
+            document.getElementById("modalTitle").innerText = `총 ${bulkSelectionArray.length}개 일괄 예약하기`;
+            document.getElementById("resGrade").value = "";
+            document.getElementById("resClass").value = "";
+            document.getElementById("resTeacher").value = "";
+            document.getElementById("reservationModal").style.display = "flex";
+        }
+
+        // 단일 예약 시 isBulkMode를 false로 초기화
         function openReservationModal(period, targetDateKey, isEdit) {
+            isBulkMode = false; // 일반 예약 모드로 전환
             isEditMode = isEdit;
             currentSelectedPeriod = period;
             document.getElementById("editDateKey").value = targetDateKey;
-            if (isEditMode) document.getElementById("modalTitle").innerText = "예약 수정";
-            else {
+            
+            if (isEditMode) {
+                document.getElementById("modalTitle").innerText = "예약 수정";
+            } else {
                 let parts = targetDateKey.split('-');
                 document.getElementById("modalTitle").innerText = `${parts[1]}월 ${parts[2]}일 ${period} 예약`;
             }
@@ -368,20 +483,38 @@
         function closeModal(id) { document.getElementById(id).style.display = "none"; }
 
         function saveReservation() {
-            const dateKey = document.getElementById("editDateKey").value;
             const grade = document.getElementById("resGrade").value || '';
             const classNum = document.getElementById("resClass").value || '';
             const teacher = document.getElementById("resTeacher").value;
+            
             if (!teacher) { alert("선생님 성함이나 내용을 입력해주세요."); return; }
             const text = `${grade} ${classNum} ${teacher}`.trim();
             
-            // 🟢 데이터 저장 시에도 'author' 필드를 제외하고 깔끔하게 저장
-            db.ref(`reservations/${dateKey}/${currentSelectedPeriod}`).set({
-                text: text
-            }).then(() => {
-                closeModal('reservationModal');
-                alert("저장되었습니다.");
-            }).catch(() => alert("저장에 실패했습니다."));
+            // 🚀 [추가됨] 일괄 예약 모드일 때의 저장 처리
+            if (isBulkMode) {
+                let updates = {};
+                bulkSelectionArray.forEach(item => {
+                    // Firebase의 여러 경로를 한 번에 업데이트하기 위해 객체로 묶음
+                    updates[`reservations/${item.dateKey}/${item.period}`] = { text: text };
+                });
+                
+                db.ref().update(updates).then(() => {
+                    closeModal('reservationModal');
+                    alert(`${bulkSelectionArray.length}개의 일괄 예약이 완료되었습니다!`);
+                    isBulkMode = false;
+                    bulkSelectionArray = [];
+                }).catch(() => alert("일괄 저장에 실패했습니다."));
+
+            // 기존 단일 예약 모드일 때의 저장 처리
+            } else {
+                const dateKey = document.getElementById("editDateKey").value;
+                db.ref(`reservations/${dateKey}/${currentSelectedPeriod}`).set({
+                    text: text
+                }).then(() => {
+                    closeModal('reservationModal');
+                    alert("저장되었습니다.");
+                }).catch(() => alert("저장에 실패했습니다."));
+            }
         }
 
         function openAdminModal() {
